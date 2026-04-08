@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -337,6 +336,84 @@
             font-size: 0.9em;
             color: #7f1d1d;
         }
+
+        .reference-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            font-size: 1.3em;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .verb-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .verb-table th {
+            background: #f3f4f6;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 58px;
+            z-index: 5;
+        }
+
+        .verb-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .verb-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .verb-infinitive {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .verb-english {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .conjugation-cell {
+            font-family: 'Courier New', monospace;
+            color: #374151;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
     </style>
 </head>
 <body>
@@ -345,12 +422,7 @@
             <h1>🇫🇷 French Verb Master</h1>
             <p>Present Tense Practice</p>
         </div>
-        <div style="text-align: center;">
-            <button class="btn" id="clear-history-btn">Clear History</button>        
-        </div>
-        
-            
-        
+
         <div class="stats">
             <div class="stat-item">
                 <div class="stat-value" id="totalVerbs">0</div>
@@ -379,9 +451,9 @@
                 <div class="mode-title">🎯 Mistake Review</div>
                 <div class="mode-desc">Practice your weak spots</div>
             </button>
-            <button class="mode-btn" data-mode="matching">
-                <div class="mode-title">🧩 Verb Matching</div>
-                <div class="mode-desc">Sort by patterns</div>
+            <button class="mode-btn" data-mode="reference">
+                <div class="mode-title">📚 Reference Table</div>
+                <div class="mode-desc">View all conjugations</div>
             </button>
             <button class="mode-btn" data-mode="translation">
                 <div class="mode-title">🌍 Translation</div>
@@ -559,8 +631,8 @@
                 case 'mistakes':
                     loadMistakeReview();
                     break;
-                case 'matching':
-                    loadMatching();
+                case 'reference':
+                    loadReferenceTable();
                     break;
                 case 'translation':
                     loadTranslation();
@@ -715,171 +787,95 @@
             }
         }
 
-        // VERB MATCHING MODE
-        function loadMatching() {
+        // REFERENCE TABLE MODE
+        function loadReferenceTable() {
             const area = document.getElementById('practiceArea');
             
-            // Group verbs by conjugation pattern
-            const patterns = analyzePatterns();
-            
-            area.innerHTML = `
-                <h2 style="margin-bottom: 20px;">Verb Patterns & Groups</h2>
-                <p style="margin-bottom: 20px; color: #666;">Verbs are grouped by their conjugation patterns</p>
-                ${Object.keys(patterns).map(pattern => `
-                    <div class="pattern-group">
-                        <div class="pattern-title">${pattern}</div>
-                        <div class="pattern-verbs">
-                            ${patterns[pattern].map(v => `
-                                <div class="verb-chip">${v.infinitive} (${v.english})</div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('')}
-                <div style="text-align: center; margin-top: 30px;">
-                    <button class="btn" onclick="startMatchingGame()">Play Matching Game</button>
-                </div>
-            `;
-        }
-
-        function analyzePatterns() {
-            const patterns = {};
-            
-            state.allVerbs.forEach(verb => {
-                // Analyze the conjugation pattern
-                const ending = verb.infinitive.slice(-2);
-                let patternName = '';
-                
-                if (ending === 'er') {
-                    // Check if it's regular -er
-                    const jeStem = verb.conjugations.je;
-                    const infinitiveStem = verb.infinitive.slice(0, -2);
-                    
-                    if (jeStem === infinitiveStem + 'e') {
-                        patternName = 'Regular -ER verbs';
-                    } else if (verb.infinitive.includes('ger')) {
-                        patternName = '-GER verbs (special nous form)';
-                    } else {
-                        patternName = 'Irregular -ER verbs';
-                    }
-                } else if (ending === 'ir') {
-                    patternName = '-IR verbs';
-                } else if (ending === 're') {
-                    patternName = '-RE verbs';
-                } else {
-                    patternName = 'Highly irregular verbs';
-                }
-                
-                if (!patterns[patternName]) patterns[patternName] = [];
-                patterns[patternName].push(verb);
-            });
-            
-            return patterns;
-        }
-
-        function startMatchingGame() {
-            // Create matching pairs: infinitive vs conjugated form
-            const selectedVerbs = getRandomVerbs(6);
-            const pairs = [];
-            
-            selectedVerbs.forEach(verb => {
-                const pronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
-                pairs.push({
-                    type: 'infinitive',
-                    text: verb.infinitive,
-                    id: verb.infinitive,
-                    english: verb.english
-                });
-                pairs.push({
-                    type: 'conjugated',
-                    text: `${pronoun} ${verb.conjugations[pronoun]}`,
-                    id: verb.infinitive,
-                    pronoun: pronoun
-                });
-            });
-            
-            // Shuffle pairs
-            pairs.sort(() => Math.random() - 0.5);
-            
-            state.matchingGame = {
-                pairs: pairs,
-                selected: [],
-                matched: []
+            const categoryNames = {
+                essential: '⭐ Essential Verbs (MOST IMPORTANT)',
+                daily: '🏠 Daily Routine Verbs',
+                communication: '🗣️ Communication Verbs',
+                movement: '🚶 Movement & Travel Verbs',
+                feelings: '❤️ Feelings & Preferences',
+                regular: '🎯 Common Regular Verbs (-ER)'
             };
             
-            renderMatchingGame();
-        }
-
-        function renderMatchingGame() {
-            const area = document.getElementById('practiceArea');
-            const { pairs, matched } = state.matchingGame;
-            
-            area.innerHTML = `
-                <h2 style="margin-bottom: 20px;">Match Infinitives with Conjugations</h2>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${(matched.length / (pairs.length / 2)) * 100}%"></div>
-                </div>
-                <div class="matching-grid">
-                    ${pairs.map((pair, idx) => `
-                        <div class="match-card ${matched.includes(pair.id) ? 'matched' : ''}" 
-                             data-idx="${idx}"
-                             onclick="selectMatchCard(${idx})">
-                            <div style="font-size: 1.2em; font-weight: bold;">${pair.text}</div>
-                            ${pair.type === 'infinitive' ? `<div style="font-size: 0.9em; color: #666;">${pair.english}</div>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-secondary" onclick="loadMode('matching')">Back to Patterns</button>
-                </div>
+            let html = `
+                <h2 style="margin-bottom: 20px;">Complete Verb Reference - Present Tense</h2>
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search verbs..." onkeyup="filterVerbs()">
+                <div class="reference-container" id="referenceContainer">
             `;
+            
+            Object.keys(verbDatabase).forEach(category => {
+                html += `
+                    <div class="category-section" data-category="${category}">
+                        <div class="category-header">${categoryNames[category]}</div>
+                        <table class="verb-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">Infinitive</th>
+                                    <th style="width: 15%;">English</th>
+                                    <th>je</th>
+                                    <th>tu</th>
+                                    <th>il/elle</th>
+                                    <th>nous</th>
+                                    <th>vous</th>
+                                    <th>ils/elles</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                verbDatabase[category].forEach(verb => {
+                    html += `
+                        <tr class="verb-row" data-verb="${verb.infinitive}" data-english="${verb.english}">
+                            <td class="verb-infinitive">${verb.infinitive}</td>
+                            <td class="verb-english">${verb.english}</td>
+                            <td class="conjugation-cell">${verb.conjugations.je}</td>
+                            <td class="conjugation-cell">${verb.conjugations.tu}</td>
+                            <td class="conjugation-cell">${verb.conjugations.il}</td>
+                            <td class="conjugation-cell">${verb.conjugations.nous}</td>
+                            <td class="conjugation-cell">${verb.conjugations.vous}</td>
+                            <td class="conjugation-cell">${verb.conjugations.ils}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            
+            area.innerHTML = html;
         }
 
-        function selectMatchCard(idx) {
-            const { pairs, selected, matched } = state.matchingGame;
-            const card = pairs[idx];
+        function filterVerbs() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const rows = document.querySelectorAll('.verb-row');
+            const sections = document.querySelectorAll('.category-section');
             
-            if (matched.includes(card.id)) return;
-            if (selected.includes(idx)) {
-                state.matchingGame.selected = selected.filter(i => i !== idx);
-                renderMatchingGame();
-                return;
-            }
-            
-            if (selected.length >= 2) return;
-            
-            state.matchingGame.selected.push(idx);
-            
-            if (selected.length === 1) {
-                // Check match
-                const first = pairs[selected[0]];
-                const second = pairs[idx];
+            rows.forEach(row => {
+                const verb = row.dataset.verb.toLowerCase();
+                const english = row.dataset.english.toLowerCase();
                 
-                if (first.id === second.id && first.type !== second.type) {
-                    // Match!
-                    state.matchingGame.matched.push(first.id);
-                    state.matchingGame.selected = [];
-                    
-                    if (state.matchingGame.matched.length === pairs.length / 2) {
-                        setTimeout(() => {
-                            alert('🎉 All matched! Great job!');
-                            startMatchingGame();
-                        }, 500);
-                    }
+                if (verb.includes(searchTerm) || english.includes(searchTerm)) {
+                    row.style.display = '';
                 } else {
-                    // No match
-                    setTimeout(() => {
-                        state.matchingGame.selected = [];
-                        renderMatchingGame();
-                    }, 1000);
+                    row.style.display = 'none';
                 }
-            }
+            });
             
-            renderMatchingGame();
-            
-            // Highlight selected
-            document.querySelectorAll('.match-card').forEach((card, i) => {
-                if (state.matchingGame.selected.includes(i)) {
-                    card.classList.add('selected');
+            // Hide categories with no visible verbs
+            sections.forEach(section => {
+                const visibleRows = section.querySelectorAll('.verb-row:not([style*="display: none"])');
+                if (visibleRows.length === 0) {
+                    section.style.display = 'none';
+                } else {
+                    section.style.display = '';
                 }
             });
         }
@@ -972,14 +968,6 @@
             const shuffled = [...state.allVerbs].sort(() => Math.random() - 0.5);
             return shuffled.slice(0, count);
         }
-
-            document.getElementById('clear-history-btn').onclick = function() {
-        if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
-            localStorage.clear();
-            // Reinitialize the app
-            location.reload();
-        }
-    };
 
         // Start the app
         init();

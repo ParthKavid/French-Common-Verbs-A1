@@ -414,6 +414,97 @@
             outline: none;
             border-color: #764ba2;
         }
+
+        .mastery-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .session-progress {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .session-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #374151;
+        }
+
+        .pronoun-checklist {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .pronoun-check {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            border: 2px solid #e5e7eb;
+            background: white;
+        }
+
+        .pronoun-check.completed {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .pronoun-check.current {
+            background: #ddd6fe;
+            border-color: #667eea;
+            color: #4c1d95;
+        }
+
+        .mastery-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -422,7 +513,7 @@
             <h1>🇫🇷 French Verb Master</h1>
             <p>Present Tense Practice</p>
         </div>
-        <div style="text-align: center;">
+  <div style="text-align: center;">
             <button class="btn" id="clear-history-btn">Clear History</button>        
         </div>
         <div class="stats">
@@ -439,8 +530,8 @@
                 <div class="stat-label">Accuracy</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="mistakes">0</div>
-                <div class="stat-label">Mistakes</div>
+                <div class="stat-value" id="mastered">0</div>
+                <div class="stat-label">Mastered</div>
             </div>
         </div>
 
@@ -543,22 +634,25 @@
         // State management
         let state = {
             currentMode: 'conjugation',
+            practiceMode: 'sequential', // 'sequential' or 'random'
             allVerbs: [],
             currentVerb: null,
             currentPronoun: null,
+            currentSession: {
+                verb: null,
+                pronounsCompleted: [],
+                attempts: 0
+            },
+            verbStats: {}, // { verbInfinitive: { completions: 0, attempts: 0, correct: 0, incorrect: 0, lastPracticed: timestamp } }
             mistakes: [],
             stats: {
                 total: 0,
-                practiced: new Set(),
-                correct: 0,
-                incorrect: 0
+                verbsPracticed: 0, // Verbs with at least 1 full completion
+                verbsMastered: 0,  // Verbs with 3+ completions
+                totalCorrect: 0,
+                totalIncorrect: 0
             },
-            selectedCategories: ['essential', 'daily', 'communication', 'movement', 'feelings', 'regular'],
-            matchingGame: {
-                pairs: [],
-                selected: [],
-                matched: []
-            }
+            selectedCategories: ['essential', 'daily', 'communication', 'movement', 'feelings', 'regular']
         };
 
         const pronouns = ['je', 'tu', 'il', 'nous', 'vous', 'ils'];
@@ -586,29 +680,70 @@
             const saved = localStorage.getItem('frenchVerbPractice');
             if (saved) {
                 const parsed = JSON.parse(saved);
+                state.verbStats = parsed.verbStats || {};
                 state.mistakes = parsed.mistakes || [];
-                state.stats.practiced = new Set(parsed.practiced || []);
-                state.stats.correct = parsed.correct || 0;
-                state.stats.incorrect = parsed.incorrect || 0;
+                calculateStats();
             }
         }
 
         function saveState() {
             localStorage.setItem('frenchVerbPractice', JSON.stringify({
-                mistakes: state.mistakes,
-                practiced: Array.from(state.stats.practiced),
-                correct: state.stats.correct,
-                incorrect: state.stats.incorrect
+                verbStats: state.verbStats,
+                mistakes: state.mistakes
             }));
         }
 
+        function calculateStats() {
+            state.stats.verbsPracticed = 0;
+            state.stats.verbsMastered = 0;
+            state.stats.totalCorrect = 0;
+            state.stats.totalIncorrect = 0;
+
+            Object.values(state.verbStats).forEach(stats => {
+                if (stats.completions >= 1) state.stats.verbsPracticed++;
+                if (stats.completions >= 3) state.stats.verbsMastered++;
+                state.stats.totalCorrect += stats.correct;
+                state.stats.totalIncorrect += stats.incorrect;
+            });
+        }
+
+        function getVerbStats(verbInfinitive) {
+            if (!state.verbStats[verbInfinitive]) {
+                state.verbStats[verbInfinitive] = {
+                    completions: 0,
+                    attempts: 0,
+                    correct: 0,
+                    incorrect: 0,
+                    lastPracticed: null
+                };
+            }
+            return state.verbStats[verbInfinitive];
+        }
+
+        function getMasteryLevel(verbInfinitive) {
+            const stats = state.verbStats[verbInfinitive];
+            if (!stats || stats.completions === 0) return 'not-practiced';
+            if (stats.completions >= 3) return 'mastered';
+            return 'learning';
+        }
+
+        function getMasteryColor(level) {
+            switch(level) {
+                case 'mastered': return '#10b981'; // green
+                case 'learning': return '#f59e0b'; // yellow
+                case 'not-practiced': return '#ef4444'; // red
+                default: return '#6b7280';
+            }
+        }
+
         function updateStats() {
+            calculateStats();
             document.getElementById('totalVerbs').textContent = state.stats.total;
-            document.getElementById('practiced').textContent = state.stats.practiced.size;
-            const total = state.stats.correct + state.stats.incorrect;
-            const accuracy = total > 0 ? Math.round((state.stats.correct / total) * 100) : 0;
+            document.getElementById('practiced').textContent = state.stats.verbsPracticed;
+            const total = state.stats.totalCorrect + state.stats.totalIncorrect;
+            const accuracy = total > 0 ? Math.round((state.stats.totalCorrect / total) * 100) : 0;
             document.getElementById('accuracy').textContent = accuracy + '%';
-            document.getElementById('mistakes').textContent = state.mistakes.length;
+            document.getElementById('mastered').textContent = state.stats.verbsMastered;
         }
 
         function setupEventListeners() {
@@ -644,17 +779,66 @@
 
         // CONJUGATION DRILL MODE
         function loadConjugationDrill() {
-            const verb = getRandomVerb();
-            const pronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
-            
-            state.currentVerb = verb;
-            state.currentPronoun = pronoun;
-            
             const area = document.getElementById('practiceArea');
-            area.innerHTML = `
+            
+            // Add mode toggle
+            const modeToggleHTML = `
+                <div class="mode-toggle">
+                    <button class="toggle-btn ${state.practiceMode === 'sequential' ? 'active' : ''}" onclick="setPracticeMode('sequential')">
+                        📋 Sequential (all 6 pronouns)
+                    </button>
+                    <button class="toggle-btn ${state.practiceMode === 'random' ? 'active' : ''}" onclick="setPracticeMode('random')">
+                        🎲 Random (any verb, any pronoun)
+                    </button>
+                </div>
+            `;
+            
+            if (state.practiceMode === 'sequential') {
+                loadSequentialMode(area, modeToggleHTML);
+            } else {
+                loadRandomMode(area, modeToggleHTML);
+            }
+        }
+
+        function setPracticeMode(mode) {
+            state.practiceMode = mode;
+            if (mode === 'sequential') {
+                // Reset session when switching to sequential
+                state.currentSession = {
+                    verb: null,
+                    pronounsCompleted: [],
+                    attempts: 0
+                };
+            }
+            loadConjugationDrill();
+        }
+
+        function loadSequentialMode(area, modeToggleHTML) {
+            // Check if we're continuing a verb or starting new
+            if (!state.currentSession.verb || state.currentSession.pronounsCompleted.length === 6) {
+                // Start new verb
+                startNewVerbSession();
+            }
+            
+            // Get next pronoun to practice
+            const remainingPronouns = pronouns.filter(p => !state.currentSession.pronounsCompleted.includes(p));
+            state.currentPronoun = remainingPronouns[0];
+            
+            area.innerHTML = modeToggleHTML + `
+                <div class="session-progress">
+                    <div class="session-title">Current Verb: ${state.currentVerb.infinitive} (${state.currentVerb.english})</div>
+                    <div>Complete all 6 pronouns to finish this verb!</div>
+                    <div class="pronoun-checklist">
+                        ${pronouns.map(p => `
+                            <div class="pronoun-check ${state.currentSession.pronounsCompleted.includes(p) ? 'completed' : ''} ${p === state.currentPronoun ? 'current' : ''}">
+                                ${state.currentSession.pronounsCompleted.includes(p) ? '✓ ' : ''}${p}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
                 <div class="question">
-                    <div class="verb-display">${verb.infinitive}</div>
-                    <div class="pronoun-display">${pronoun}</div>
+                    <div class="verb-display">${state.currentVerb.infinitive}</div>
+                    <div class="pronoun-display">${state.currentPronoun}</div>
                 </div>
                 <div class="input-area">
                     <input type="text" class="answer-input" id="conjugationInput" placeholder="Type conjugation..." autocomplete="off">
@@ -662,7 +846,7 @@
                 <div class="feedback" id="feedback"></div>
                 <div style="text-align: center;">
                     <button class="btn" onclick="checkConjugation()">Check Answer</button>
-                    <button class="btn btn-secondary" onclick="skipQuestion()">Skip</button>
+                    <button class="btn btn-secondary" onclick="skipVerb()">Skip This Verb</button>
                 </div>
             `;
             
@@ -672,19 +856,67 @@
             });
         }
 
+        function loadRandomMode(area, modeToggleHTML) {
+            // Pick completely random verb and pronoun
+            state.currentVerb = getRandomVerb();
+            state.currentPronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
+            
+            area.innerHTML = modeToggleHTML + `
+                <div class="question">
+                    <div class="verb-display">${state.currentVerb.infinitive}</div>
+                    <div style="font-size: 1em; color: #888; margin-bottom: 10px;">${state.currentVerb.english}</div>
+                    <div class="pronoun-display">${state.currentPronoun}</div>
+                </div>
+                <div class="input-area">
+                    <input type="text" class="answer-input" id="conjugationInput" placeholder="Type conjugation..." autocomplete="off">
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="checkRandomConjugation()">Check Answer</button>
+                    <button class="btn btn-secondary" onclick="loadConjugationDrill()">Next Question</button>
+                </div>
+            `;
+            
+            document.getElementById('conjugationInput').focus();
+            document.getElementById('conjugationInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkRandomConjugation();
+            });
+        }
+
+        function startNewVerbSession() {
+            state.currentVerb = getRandomVerb();
+            state.currentSession = {
+                verb: state.currentVerb.infinitive,
+                pronounsCompleted: [],
+                attempts: 0
+            };
+        }
+
         function checkConjugation() {
             const input = document.getElementById('conjugationInput').value.trim().toLowerCase();
             const correct = state.currentVerb.conjugations[state.currentPronoun];
             const feedback = document.getElementById('feedback');
             
-            state.stats.practiced.add(state.currentVerb.infinitive);
+            const verbStats = getVerbStats(state.currentVerb.infinitive);
+            verbStats.attempts++;
+            state.currentSession.attempts++;
             
             if (input === correct) {
-                state.stats.correct++;
+                verbStats.correct++;
+                state.currentSession.pronounsCompleted.push(state.currentPronoun);
                 feedback.innerHTML = `<span class="correct">✓ Correct! ${state.currentPronoun} ${correct}</span>`;
-                setTimeout(loadConjugationDrill, 1500);
+                
+                // Check if all pronouns completed
+                if (state.currentSession.pronounsCompleted.length === 6) {
+                    verbStats.completions++;
+                    verbStats.lastPracticed = Date.now();
+                    feedback.innerHTML += `<br><span class="correct" style="font-size: 1.3em; margin-top: 10px; display: block;">🎉 Verb Complete! +1 Practice Count</span>`;
+                    setTimeout(loadConjugationDrill, 2000);
+                } else {
+                    setTimeout(loadConjugationDrill, 1000);
+                }
             } else {
-                state.stats.incorrect++;
+                verbStats.incorrect++;
                 feedback.innerHTML = `<span class="incorrect">✗ Wrong. Correct answer: ${state.currentPronoun} ${correct}</span>`;
                 
                 // Add to mistakes
@@ -697,15 +929,51 @@
                     timestamp: Date.now()
                 };
                 state.mistakes.push(mistake);
-                if (state.mistakes.length > 50) state.mistakes.shift(); // Keep last 50
+                if (state.mistakes.length > 50) state.mistakes.shift();
             }
             
             updateStats();
             saveState();
         }
 
-        function skipQuestion() {
-            loadConjugationDrill();
+        function checkRandomConjugation() {
+            const input = document.getElementById('conjugationInput').value.trim().toLowerCase();
+            const correct = state.currentVerb.conjugations[state.currentPronoun];
+            const feedback = document.getElementById('feedback');
+            
+            const verbStats = getVerbStats(state.currentVerb.infinitive);
+            verbStats.attempts++;
+            
+            if (input === correct) {
+                verbStats.correct++;
+                feedback.innerHTML = `<span class="correct">✓ Correct! ${state.currentPronoun} ${correct}</span>`;
+                setTimeout(loadConjugationDrill, 1200);
+            } else {
+                verbStats.incorrect++;
+                feedback.innerHTML = `<span class="incorrect">✗ Wrong. Correct answer: ${state.currentPronoun} ${correct}</span>`;
+                
+                // Add to mistakes
+                const mistake = {
+                    verb: state.currentVerb.infinitive,
+                    pronoun: state.currentPronoun,
+                    correct: correct,
+                    wrong: input,
+                    english: state.currentVerb.english,
+                    timestamp: Date.now()
+                };
+                state.mistakes.push(mistake);
+                if (state.mistakes.length > 50) state.mistakes.shift();
+            }
+            
+            updateStats();
+            saveState();
+        }
+
+        function skipVerb() {
+            if (confirm('Skip this verb? Progress will not be saved.')) {
+                startNewVerbSession();
+                loadConjugationDrill();
+            }
         }
 
         // MISTAKE REVIEW MODE
@@ -715,7 +983,7 @@
             if (state.mistakes.length === 0) {
                 area.innerHTML = `
                     <div style="text-align: center; padding: 50px;">
-                        <h2>🎉 No mistakes to review!</h2>
+                        <h2>🎉 No recent mistakes!</h2>
                         <p style="margin-top: 20px; font-size: 1.1em;">Keep practicing to build your skill.</p>
                         <button class="btn" style="margin-top: 20px;" onclick="loadMode('conjugation')">Start Conjugation Drills</button>
                     </div>
@@ -723,66 +991,74 @@
                 return;
             }
             
-            // Show recent mistakes
-            const recentMistakes = state.mistakes.slice(-20).reverse();
+            // Get verbs with mistakes and their stats
+            const verbsWithMistakes = {};
+            state.mistakes.forEach(m => {
+                if (!verbsWithMistakes[m.verb]) {
+                    verbsWithMistakes[m.verb] = {
+                        infinitive: m.verb,
+                        english: m.english,
+                        mistakeCount: 0,
+                        examples: []
+                    };
+                }
+                verbsWithMistakes[m.verb].mistakeCount++;
+                if (verbsWithMistakes[m.verb].examples.length < 3) {
+                    verbsWithMistakes[m.verb].examples.push(m);
+                }
+            });
+            
+            const sortedVerbs = Object.values(verbsWithMistakes).sort((a, b) => b.mistakeCount - a.mistakeCount);
             
             area.innerHTML = `
-                <h2 style="margin-bottom: 20px;">Recent Mistakes (${state.mistakes.length} total)</h2>
+                <h2 style="margin-bottom: 20px;">Verbs That Need Practice</h2>
+                <p style="margin-bottom: 20px;">Based on your ${state.mistakes.length} recent mistakes</p>
                 <div class="mistake-list">
-                    ${recentMistakes.map(m => `
+                    ${sortedVerbs.map(v => `
                         <div class="mistake-item">
-                            <div class="mistake-verb">${m.verb} (${m.english})</div>
+                            <div class="mistake-verb">${v.infinitive} (${v.english}) - ${v.mistakeCount} mistake${v.mistakeCount > 1 ? 's' : ''}</div>
                             <div class="mistake-details">
-                                ${m.pronoun} → You wrote: <strong>${m.wrong}</strong>, Correct: <strong>${m.correct}</strong>
+                                Recent errors: ${v.examples.map(e => `${e.pronoun} (you: ${e.wrong}, correct: ${e.correct})`).join(', ')}
                             </div>
                         </div>
                     `).join('')}
                 </div>
                 <div style="text-align: center; margin-top: 20px;">
                     <button class="btn" onclick="practiceMistakes()">Practice These Verbs</button>
-                    <button class="btn btn-secondary" onclick="clearMistakes()">Clear All Mistakes</button>
+                    <button class="btn btn-secondary" onclick="clearMistakes()">Clear Mistake History</button>
                 </div>
             `;
         }
 
         function practiceMistakes() {
-            // Create a practice session from mistake verbs
-            const mistakeVerbs = [...new Set(state.mistakes.map(m => m.verb))];
-            if (mistakeVerbs.length === 0) return;
+            // Get verbs with most mistakes
+            const verbsWithMistakes = {};
+            state.mistakes.forEach(m => {
+                verbsWithMistakes[m.verb] = (verbsWithMistakes[m.verb] || 0) + 1;
+            });
             
-            const verb = state.allVerbs.find(v => v.infinitive === mistakeVerbs[Math.floor(Math.random() * mistakeVerbs.length)]);
-            const pronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
+            const sortedVerbs = Object.entries(verbsWithMistakes)
+                .sort((a, b) => b[1] - a[1])
+                .map(([verb]) => verb);
+            
+            if (sortedVerbs.length === 0) return;
+            
+            // Pick a verb with mistakes
+            const verbInfinitive = sortedVerbs[0];
+            const verb = state.allVerbs.find(v => v.infinitive === verbInfinitive);
             
             state.currentVerb = verb;
-            state.currentPronoun = pronoun;
+            state.currentSession = {
+                verb: verb.infinitive,
+                pronounsCompleted: [],
+                attempts: 0
+            };
             
-            const area = document.getElementById('practiceArea');
-            area.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <span style="background: #fef2f2; padding: 5px 15px; border-radius: 20px; color: #991b1b;">Mistake Review Practice</span>
-                </div>
-                <div class="question">
-                    <div class="verb-display">${verb.infinitive}</div>
-                    <div class="pronoun-display">${pronoun}</div>
-                </div>
-                <div class="input-area">
-                    <input type="text" class="answer-input" id="conjugationInput" placeholder="Type conjugation..." autocomplete="off">
-                </div>
-                <div class="feedback" id="feedback"></div>
-                <div style="text-align: center;">
-                    <button class="btn" onclick="checkConjugation()">Check Answer</button>
-                    <button class="btn btn-secondary" onclick="loadMode('mistakes')">Back to Mistakes</button>
-                </div>
-            `;
-            
-            document.getElementById('conjugationInput').focus();
-            document.getElementById('conjugationInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') checkConjugation();
-            });
+            loadConjugationDrill();
         }
 
         function clearMistakes() {
-            if (confirm('Are you sure you want to clear all mistakes?')) {
+            if (confirm('Are you sure you want to clear all mistake history?')) {
                 state.mistakes = [];
                 saveState();
                 loadMistakeReview();
@@ -804,6 +1080,20 @@
             
             let html = `
                 <h2 style="margin-bottom: 20px;">Complete Verb Reference - Present Tense</h2>
+                <div class="mastery-legend">
+                    <div class="legend-item">
+                        <div class="mastery-dot" style="background: #ef4444;"></div>
+                        <span>Not Practiced</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="mastery-dot" style="background: #f59e0b;"></div>
+                        <span>Learning (1-2 completions)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="mastery-dot" style="background: #10b981;"></div>
+                        <span>Mastered (3+ completions)</span>
+                    </div>
+                </div>
                 <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search verbs..." onkeyup="filterVerbs()">
                 <div class="reference-container" id="referenceContainer">
             `;
@@ -815,8 +1105,9 @@
                         <table class="verb-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 15%;">Infinitive</th>
-                                    <th style="width: 15%;">English</th>
+                                    <th style="width: 3%;"></th>
+                                    <th style="width: 13%;">Infinitive</th>
+                                    <th style="width: 13%;">English</th>
                                     <th>je</th>
                                     <th>tu</th>
                                     <th>il/elle</th>
@@ -829,8 +1120,14 @@
                 `;
                 
                 verbDatabase[category].forEach(verb => {
+                    const masteryLevel = getMasteryLevel(verb.infinitive);
+                    const masteryColor = getMasteryColor(masteryLevel);
+                    const stats = state.verbStats[verb.infinitive];
+                    const completions = stats ? stats.completions : 0;
+                    
                     html += `
                         <tr class="verb-row" data-verb="${verb.infinitive}" data-english="${verb.english}">
+                            <td><div class="mastery-dot" style="background: ${masteryColor};" title="${masteryLevel} (${completions} completions)"></div></td>
                             <td class="verb-infinitive">${verb.infinitive}</td>
                             <td class="verb-english">${verb.english}</td>
                             <td class="conjugation-cell">${verb.conjugations.je}</td>
@@ -931,15 +1228,16 @@
             const correctVerb = state.currentVerb.conjugations[state.currentPronoun];
             const feedback = document.getElementById('feedback');
             
-            state.stats.practiced.add(state.currentVerb.infinitive);
+            const verbStats = getVerbStats(state.currentVerb.infinitive);
+            verbStats.attempts++;
             
             // Accept both full answer and just the verb
             if (input === correctFull || input === correctVerb) {
-                state.stats.correct++;
+                verbStats.correct++;
                 feedback.innerHTML = `<span class="correct">✓ Excellent! ${correctFull}</span>`;
                 setTimeout(loadTranslation, 1500);
             } else {
-                state.stats.incorrect++;
+                verbStats.incorrect++;
                 feedback.innerHTML = `<span class="incorrect">✗ Wrong. Correct answer: ${correctFull}</span>`;
                 
                 const mistake = {
@@ -970,14 +1268,15 @@
             const shuffled = [...state.allVerbs].sort(() => Math.random() - 0.5);
             return shuffled.slice(0, count);
         }
-         
-        document.getElementById('clear-history-btn').onclick = function() {
+
+           document.getElementById('clear-history-btn').onclick = function() {
         if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
             localStorage.clear();
             // Reinitialize the app
             location.reload();
         }
     };
+
         // Start the app
         init();
     </script>

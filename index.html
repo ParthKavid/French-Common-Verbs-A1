@@ -606,76 +606,24 @@
             }
         }
 
-        // Verb database with categories
-        const verbDatabase = {
-            essential: [
-                { infinitive: 'être', english: 'to be', conjugations: { je: 'suis', tu: 'es', il: 'est', nous: 'sommes', vous: 'êtes', ils: 'sont' } },
-                { infinitive: 'avoir', english: 'to have', conjugations: { je: 'ai', tu: 'as', il: 'a', nous: 'avons', vous: 'avez', ils: 'ont' } },
-                { infinitive: 'aller', english: 'to go', conjugations: { je: 'vais', tu: 'vas', il: 'va', nous: 'allons', vous: 'allez', ils: 'vont' } },
-                { infinitive: 'faire', english: 'to do/make', conjugations: { je: 'fais', tu: 'fais', il: 'fait', nous: 'faisons', vous: 'faites', ils: 'font' } },
-                { infinitive: 'dire', english: 'to say', conjugations: { je: 'dis', tu: 'dis', il: 'dit', nous: 'disons', vous: 'dites', ils: 'disent' } },
-                { infinitive: 'pouvoir', english: 'can/may', conjugations: { je: 'peux', tu: 'peux', il: 'peut', nous: 'pouvons', vous: 'pouvez', ils: 'peuvent' } },
-                { infinitive: 'vouloir', english: 'to want', conjugations: { je: 'veux', tu: 'veux', il: 'veut', nous: 'voulons', vous: 'voulez', ils: 'veulent' } },
-                { infinitive: 'devoir', english: 'must/have to', conjugations: { je: 'dois', tu: 'dois', il: 'doit', nous: 'devons', vous: 'devez', ils: 'doivent' } },
-                { infinitive: 'prendre', english: 'to take', conjugations: { je: 'prends', tu: 'prends', il: 'prend', nous: 'prenons', vous: 'prenez', ils: 'prennent' } },
-                { infinitive: 'mettre', english: 'to put', conjugations: { je: 'mets', tu: 'mets', il: 'met', nous: 'mettons', vous: 'mettez', ils: 'mettent' } },
-                { infinitive: 'donner', english: 'to give', conjugations: { je: 'donne', tu: 'donnes', il: 'donne', nous: 'donnons', vous: 'donnez', ils: 'donnent' } },
-                { infinitive: 'trouver', english: 'to find', conjugations: { je: 'trouve', tu: 'trouves', il: 'trouve', nous: 'trouvons', vous: 'trouvez', ils: 'trouvent' } }
-            ],
-            daily: [
-                { infinitive: 'manger', english: 'to eat', conjugations: { je: 'mange', tu: 'manges', il: 'mange', nous: 'mangeons', vous: 'mangez', ils: 'mangent' } },
-                { infinitive: 'boire', english: 'to drink', conjugations: { je: 'bois', tu: 'bois', il: 'boit', nous: 'buvons', vous: 'buvez', ils: 'boivent' } },
-                { infinitive: 'dormir', english: 'to sleep', conjugations: { je: 'dors', tu: 'dors', il: 'dort', nous: 'dormons', vous: 'dormez', ils: 'dorment' } },
-                { infinitive: 'se lever', english: 'to get up', conjugations: { je: 'me lève', tu: 'te lèves', il: 'se lève', nous: 'nous levons', vous: 'vous levez', ils: 'se lèvent' } },
-                { infinitive: 'se coucher', english: 'to go to bed', conjugations: { je: 'me couche', tu: 'te couches', il: 'se couche', nous: 'nous couchons', vous: 'vous couchez', ils: 'se couchent' } },
-                { infinitive: 'travailler', english: 'to work', conjugations: { je: 'travaille', tu: 'travailles', il: 'travaille', nous: 'travaillons', vous: 'travaillez', ils: 'travaillent' } },
-                { infinitive: 'étudier', english: 'to study', conjugations: { je: 'étudie', tu: 'étudies', il: 'étudie', nous: 'étudions', vous: 'étudiez', ils: 'étudient' } },
-                { infinitive: 'habiter', english: 'to live', conjugations: { je: 'habite', tu: 'habites', il: 'habite', nous: 'habitons', vous: 'habitez', ils: 'habitent' } },
-                { infinitive: 'rentrer', english: 'to return home', conjugations: { je: 'rentre', tu: 'rentres', il: 'rentre', nous: 'rentrons', vous: 'rentrez', ils: 'rentrent' } },
-                { infinitive: 'sortir', english: 'to go out', conjugations: { je: 'sors', tu: 'sors', il: 'sort', nous: 'sortons', vous: 'sortez', ils: 'sortent' } }
-            ],
-            communication: [
-                { infinitive: 'parler', english: 'to speak', conjugations: { je: 'parle', tu: 'parles', il: 'parle', nous: 'parlons', vous: 'parlez', ils: 'parlent' } },
-                { infinitive: 'demander', english: 'to ask', conjugations: { je: 'demande', tu: 'demandes', il: 'demande', nous: 'demandons', vous: 'demandez', ils: 'demandent' } },
-                { infinitive: 'répondre', english: 'to answer', conjugations: { je: 'réponds', tu: 'réponds', il: 'répond', nous: 'répondons', vous: 'répondez', ils: 'répondent' } },
-                { infinitive: 'écouter', english: 'to listen', conjugations: { je: 'écoute', tu: 'écoutes', il: 'écoute', nous: 'écoutons', vous: 'écoutez', ils: 'écoutent' } },
-                { infinitive: 'regarder', english: 'to watch', conjugations: { je: 'regarde', tu: 'regardes', il: 'regarde', nous: 'regardons', vous: 'regardez', ils: 'regardent' } },
-                { infinitive: 'lire', english: 'to read', conjugations: { je: 'lis', tu: 'lis', il: 'lit', nous: 'lisons', vous: 'lisez', ils: 'lisent' } },
-                { infinitive: 'écrire', english: 'to write', conjugations: { je: 'écris', tu: 'écris', il: 'écrit', nous: 'écrivons', vous: 'écrivez', ils: 'écrivent' } },
-                { infinitive: 'apprendre', english: 'to learn', conjugations: { je: 'apprends', tu: 'apprends', il: 'apprend', nous: 'apprenons', vous: 'apprenez', ils: 'apprennent' } },
-                { infinitive: 'comprendre', english: 'to understand', conjugations: { je: 'comprends', tu: 'comprends', il: 'comprend', nous: 'comprenons', vous: 'comprenez', ils: 'comprennent' } }
-            ],
-            movement: [
-                { infinitive: 'venir', english: 'to come', conjugations: { je: 'viens', tu: 'viens', il: 'vient', nous: 'venons', vous: 'venez', ils: 'viennent' } },
-                { infinitive: 'partir', english: 'to leave', conjugations: { je: 'pars', tu: 'pars', il: 'part', nous: 'partons', vous: 'partez', ils: 'partent' } },
-                { infinitive: 'arriver', english: 'to arrive', conjugations: { je: 'arrive', tu: 'arrives', il: 'arrive', nous: 'arrivons', vous: 'arrivez', ils: 'arrivent' } },
-                { infinitive: 'entrer', english: 'to enter', conjugations: { je: 'entre', tu: 'entres', il: 'entre', nous: 'entrons', vous: 'entrez', ils: 'entrent' } },
-                { infinitive: 'rester', english: 'to stay', conjugations: { je: 'reste', tu: 'restes', il: 'reste', nous: 'restons', vous: 'restez', ils: 'restent' } },
-                { infinitive: 'monter', english: 'to go up', conjugations: { je: 'monte', tu: 'montes', il: 'monte', nous: 'montons', vous: 'montez', ils: 'montent' } },
-                { infinitive: 'descendre', english: 'to go down', conjugations: { je: 'descends', tu: 'descends', il: 'descend', nous: 'descendons', vous: 'descendez', ils: 'descendent' } },
-                { infinitive: 'marcher', english: 'to walk', conjugations: { je: 'marche', tu: 'marches', il: 'marche', nous: 'marchons', vous: 'marchez', ils: 'marchent' } },
-                { infinitive: 'voyager', english: 'to travel', conjugations: { je: 'voyage', tu: 'voyages', il: 'voyage', nous: 'voyageons', vous: 'voyagez', ils: 'voyagent' } }
-            ],
-            feelings: [
-                { infinitive: 'aimer', english: 'to like/love', conjugations: { je: 'aime', tu: 'aimes', il: 'aime', nous: 'aimons', vous: 'aimez', ils: 'aiment' } },
-                { infinitive: 'adorer', english: 'to love', conjugations: { je: 'adore', tu: 'adores', il: 'adore', nous: 'adorons', vous: 'adorez', ils: 'adorent' } },
-                { infinitive: 'préférer', english: 'to prefer', conjugations: { je: 'préfère', tu: 'préfères', il: 'préfère', nous: 'préférons', vous: 'préférez', ils: 'préfèrent' } },
-                { infinitive: 'détester', english: 'to hate', conjugations: { je: 'déteste', tu: 'détestes', il: 'déteste', nous: 'détestons', vous: 'détestez', ils: 'détestent' } },
-                { infinitive: 'penser', english: 'to think', conjugations: { je: 'pense', tu: 'penses', il: 'pense', nous: 'pensons', vous: 'pensez', ils: 'pensent' } },
-                { infinitive: 'croire', english: 'to believe', conjugations: { je: 'crois', tu: 'crois', il: 'croit', nous: 'croyons', vous: 'croyez', ils: 'croient' } },
-                { infinitive: 'espérer', english: 'to hope', conjugations: { je: 'espère', tu: 'espères', il: 'espère', nous: 'espérons', vous: 'espérez', ils: 'espèrent' } }
-            ],
-            regular: [
-                { infinitive: 'jouer', english: 'to play', conjugations: { je: 'joue', tu: 'joues', il: 'joue', nous: 'jouons', vous: 'jouez', ils: 'jouent' } },
-                { infinitive: 'acheter', english: 'to buy', conjugations: { je: 'achète', tu: 'achètes', il: 'achète', nous: 'achetons', vous: 'achetez', ils: 'achètent' } },
-                { infinitive: 'chercher', english: 'to look for', conjugations: { je: 'cherche', tu: 'cherches', il: 'cherche', nous: 'cherchons', vous: 'cherchez', ils: 'cherchent' } },
-                { infinitive: 'visiter', english: 'to visit', conjugations: { je: 'visite', tu: 'visites', il: 'visite', nous: 'visitons', vous: 'visitez', ils: 'visitent' } },
-                { infinitive: 'rencontrer', english: 'to meet', conjugations: { je: 'rencontre', tu: 'rencontres', il: 'rencontre', nous: 'rencontrons', vous: 'rencontrez', ils: 'rencontrent' } },
-                { infinitive: 'préparer', english: 'to prepare', conjugations: { je: 'prépare', tu: 'prépares', il: 'prépare', nous: 'préparons', vous: 'préparez', ils: 'préparent' } },
-                { infinitive: 'cuisiner', english: 'to cook', conjugations: { je: 'cuisine', tu: 'cuisines', il: 'cuisine', nous: 'cuisinons', vous: 'cuisinez', ils: 'cuisinent' } },
-                { infinitive: 'nettoyer', english: 'to clean', conjugations: { je: 'nettoie', tu: 'nettoies', il: 'nettoie', nous: 'nettoyons', vous: 'nettoyez', ils: 'nettoient' } }
-            ]
-        };
+        // Verb database will be loaded from verbs.json
+        let verbDatabase = {};
+
+        async function loadVerbs() {
+            const area = document.getElementById('practiceArea');
+            area.innerHTML = '<div style="text-align:center;padding:50px;">Loading verbs…</div>';
+            try {
+                const res = await fetch('verbs.json');
+                if (!res.ok) throw new Error(res.statusText || 'Network error');
+                verbDatabase = await res.json();
+                init();
+            } catch (err) {
+                console.error('Failed to load verbs.json', err);
+                area.innerHTML = '<div style="text-align:center;padding:50px;color:#ef4444;">Failed to load verbs data. Please refresh the page.</div>';
+            }
+        }
+
+        // (verbs loaded from verbs.json above)
 
         // State management
         let state = {
@@ -1328,8 +1276,8 @@
         }
     };
 
-        // Start the app
-        init();
+        // Start the app by loading verbs.json
+        loadVerbs();
     </script>
 </body>
 </html>

@@ -21,6 +21,62 @@ A comprehensive verb practice app for A1 Level French learners.
 
 ---
 
+## Local testing & deployment (added)
+
+Quick local test (choose one):
+
+1) Python 3
+
+```powershell
+cd /d D:\Coding\French-Common-Verbs-A1
+python -m http.server 8000
+# open http://localhost:8000
+```
+
+If `python` isn't on PATH, try `py -3 -m http.server 8000`.
+
+2) Node (npx)
+
+```powershell
+npx http-server -p 8000
+# or
+npx serve -p 8000
+```
+
+3) VS Code Live Server extension — click "Go Live".
+
+### Verify
+- `Total Verbs` stat shows verbs count from `verbs.json`.
+- Conjugation drills, random mode, translation, and reference table should function.
+- Check DevTools Console for fetch errors if verbs don't load.
+
+## `verbs.json` template
+
+Edit `verbs.json` at project root. Keep structure exactly as shown:
+
+```json
+{
+	"categoryName": [
+		{
+			"infinitive": "parler",
+			"english": "to speak",
+			"conjugations": {
+				"je": "parle",
+				"tu": "parles",
+				"il": "parle",
+				"nous": "parlons",
+				"vous": "parlez",
+				"ils": "parlent"
+			}
+		}
+	]
+}
+```
+
+Filenames are case-sensitive on GitHub Pages — make sure `verbs.json` is exactly that.
+
+If you'd like, I can populate `verbs.json` with more verbs (e.g., +100 or +500). Tell me how many and any preferred categories.
+
 ## 📖 French Verbs Included
 
 ### ⭐ 1. Essential Verbs (MOST IMPORTANT)
